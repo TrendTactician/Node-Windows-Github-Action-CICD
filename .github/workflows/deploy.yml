@@ -31,7 +31,7 @@ jobs:
           docker rm node-app-container || true
 
       - name: Deploy
-        run: docker run -d -p 3001:3000 node-app
+        run: docker run -d --name node-app-container -p 3000:3000 node-app
 
       - name: Post Checkout code
         if: always()
