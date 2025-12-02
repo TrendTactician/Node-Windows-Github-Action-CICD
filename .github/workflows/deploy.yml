@@ -25,6 +25,11 @@ jobs:
       - name: Build Docker
         run: docker build -t node-app .
 
+      - name: Stop and remove old container
+        run: |
+          docker stop node-app-container || true
+          docker rm node-app-container || true
+
       - name: Deploy
         run: docker run -d -p 3001:3000 node-app
 
