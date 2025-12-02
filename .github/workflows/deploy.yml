@@ -1,0 +1,33 @@
+name: CI/CD Pipeline
+
+on: [push]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clean node_modules (if exists)
+        run: |
+          if [ -d "node_modules" ]; then
+            sudo chown -R $USER:$USER node_modules
+            sudo rm -rf node_modules
+          fi
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        run: npm test
+
+      - name: Build Docker
+        run: docker build -t node-app .
+
+      - name: Deploy
+        run: docker run -d -p 3001:3000 node-app
+
+      - name: Post Checkout code
+        if: always()
+        run: echo "Post-step:Checkout complete"
