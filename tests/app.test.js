@@ -1,17 +1,21 @@
-// tests/app.test.js
 const request = require('supertest');
 const app = require('../app');
 
 let server;
 
 beforeAll((done) => {
-  server = app.listen(() => {
+  server = app.listen(3000, () => {
+    // Wait for the server to start
     done();
   });
 });
 
 afterAll((done) => {
-  server.close(done);
+  // Close server and wait for the close event
+  server.close(() => {
+    // Ensure Jest exits cleanly
+    done();
+  });
 });
 
 describe('Node CI/CD app', () => {
