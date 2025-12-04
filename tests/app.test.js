@@ -4,20 +4,19 @@ const app = require('../app');
 let server;
 
 beforeAll((done) => {
-  server = app.listen(3000, () => {
-    // Wait for the server to start
+  // Let OS pick a random port
+  server = app.listen(0, () => {
     done();
   });
 });
 
 afterAll((done) => {
-  // Close server and wait for the close event
   server.close(() => {
-    // Ensure Jest exits cleanly
     done();
   });
 });
 
+// For supertest, using app directly works without needing port
 describe('Node CI/CD app', () => {
   it('GET / should return message and version', async () => {
     const res = await request(app).get('/');
