@@ -1,22 +1,7 @@
+// tests/app.test.js
 const request = require('supertest');
 const app = require('../app');
 
-let server;
-
-beforeAll((done) => {
-  // Let OS pick a random port
-  server = app.listen(0, () => {
-    done();
-  });
-});
-
-afterAll((done) => {
-  server.close(() => {
-    done();
-  });
-});
-
-// For supertest, using app directly works without needing port
 describe('Node CI/CD app', () => {
   it('GET / should return message and version', async () => {
     const res = await request(app).get('/');
