@@ -6,33 +6,44 @@ jobs:
   build-and-deploy:
     runs-on: self-hosted
 
+    env:
+      APP_VERSION: v1.0.${{ github.run_number }}
+      IMAGE_NAME: node-app
+      CONTAINER_BASE: node-app
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Clean node_modules (if exists)
-        run: |
-          if [ -d "node_modules" ]; then
-            sudo chown -R $USER:$USER node_modules
-            sudo rm -rf node_modules
-          fi
       - name: Install dependencies
         run: npm install
 
       - name: Test
         run: npm test
 
-      - name: Build Docker
-        run: docker build -t node-app .
-
-      - name: Stop and remove old container
+      - name: Build Docker image with version tag
         run: |
-          docker stop node-app-container || true
-          docker rm node-app-container || true
+          docker build \
+            --build-arg APP_VERSION=${APP_VERSION} \
+            -t ${IMAGE_NAME}:${APP_VERSION} \
+            -t ${IMAGE_NAME}:latest .
 
-      - name: Deploy
-        run: docker run -d --name node-app-container -p 3000:3000 node-app
+      - name: Stop and remove previous version container (if exists)
+        run: |
+          CONTAINER_NAME="${CONTAINER_BASE}-${APP_VERSION}"
+          # stop and remove any container with same name (re-deploy same version)
+          docker stop "$CONTAINER_NAME" 2>/dev/null || true
+          docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+      - name: Deploy new version container
+        run: |
+          CONTAINER_NAME="${CONTAINER_BASE}-${APP_VERSION}"
+          docker run -d \
+            --name "$CONTAINER_NAME" \
+            -p 3000:3000 \
+            -e APP_VERSION=${APP_VERSION} \
+            ${IMAGE_NAME}:${APP_VERSION}
 
       - name: Post Checkout code
         if: always()
-        run: echo "Post-step:Checkout complete"
+        run: echo "Deployment finished for version ${APP_VERSION}"
